@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">FCM Test</string>
+    <string name="message">Message</string>
+    <string name="send_button">Send Message</string>
+</resources>
