@@ -118,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d(TAG, response.toString());
                         handleResponse(response);
                     }
                 },
@@ -146,7 +145,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void handleResponse(JSONObject response) {
-        Log.d(TAG, "Response: " + response.toString());
         try {
             int success = response.getInt("success");
             if (success == 1) {

@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
@@ -29,12 +28,10 @@ public class MyInstanceIDListenerService extends FirebaseInstanceIdService {
     // [START refresh_token]
     @Override
     public void onTokenRefresh() {
-        Log.d(TAG, "onTokenRefresh");
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
 
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-        Log.d(TAG, "FCM token refreshed: " + refreshedToken);
         prefsEditor.putString("fcm_token", refreshedToken).apply();
         Intent intent = new Intent(MainActivity.INTENT_FILTER);
         intent.putExtra("text", "FCM token: " + refreshedToken);
