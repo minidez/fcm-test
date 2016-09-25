@@ -16,7 +16,13 @@
 
 package uk.co.ianadie.fcmtest;
 
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.media.RingtoneManager;
+import android.net.Uri;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -45,18 +51,30 @@ public class MyFcmListenerService extends FirebaseMessagingService {
 
         String messageString = (String) data.get("message");
 
-        logBundle(data);
-
         Intent intent = new Intent("uk.co.ianadie.fcmtest.MESSAGE_RECEIVED");
         intent.putExtra("text", "\n\nMessage received: " + messageString);
         broadcaster.sendBroadcast(intent);
+
+        showNotification(getString(R.string.notification_title), messageString, 0);
     }
 
-    private void logBundle(Map<String, Object> data) {
-        for (String key : data.keySet()) {
-            Object value = data.get(key);
-            Log.d(TAG, String.format("%s %s (%s)", key,
-                    value.toString(), value.getClass().getName()));
-        }
+    private void showNotification(String title, String text, int notificationId) {
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
+        Intent intent;
+        intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        notificationBuilder
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(text)
+                .setAutoCancel(true)
+                .setLights(Color.BLUE, 1000, 1000)
+                .setSound(defaultSoundUri);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        notificationManager.notify(notificationId, notificationBuilder.build());
     }
 }
