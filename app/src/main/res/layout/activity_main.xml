@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:text="@string/message"
+        android:hint="@string/message"
         android:ems="10"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"

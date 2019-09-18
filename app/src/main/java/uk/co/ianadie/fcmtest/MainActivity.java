@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String WEB_API_KEY = ""; // TODO: YOUR WEB API KEY HERE
 
     private static final String TAG = MainActivity.class.getName();
-    private static final String FCM_URL = "http://fcm.googleapis.com/fcm/send";
+    private static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
     static final String INTENT_FILTER = "uk.co.ianadie.fcmtest.MESSAGE_RECEIVED";
 
     SharedPreferences sharedPrefs;
