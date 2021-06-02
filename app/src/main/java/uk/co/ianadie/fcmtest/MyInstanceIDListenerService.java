@@ -3,12 +3,12 @@ package uk.co.ianadie.fcmtest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
 
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.FirebaseInstanceIdService;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
-public class MyInstanceIDListenerService extends FirebaseInstanceIdService {
+import com.google.firebase.messaging.FirebaseMessagingService;
+
+public class MyInstanceIDListenerService extends FirebaseMessagingService {
 
     private static final String TAG = MyInstanceIDListenerService.class.getName();
     LocalBroadcastManager broadcaster;
@@ -27,14 +27,13 @@ public class MyInstanceIDListenerService extends FirebaseInstanceIdService {
      */
     // [START refresh_token]
     @Override
-    public void onTokenRefresh() {
+    public void onNewToken(String token) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
 
-        String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-        prefsEditor.putString("fcm_token", refreshedToken).apply();
+        prefsEditor.putString("fcm_token", token).apply();
         Intent intent = new Intent(MainActivity.INTENT_FILTER);
-        intent.putExtra("text", "FCM token: " + refreshedToken);
+        intent.putExtra("text", "FCM token: " + token);
         broadcaster.sendBroadcast(intent);
     }
 }

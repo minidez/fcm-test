@@ -8,9 +8,6 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.RequiresApi;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.ArrayMap;
 import android.util.Log;
@@ -19,6 +16,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -27,6 +30,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -40,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String TAG = MainActivity.class.getName();
     private static final String FCM_URL = "https://fcm.googleapis.com/fcm/send";
     static final String INTENT_FILTER = "uk.co.ianadie.fcmtest.MESSAGE_RECEIVED";
+    private FirebaseAnalytics firebaseAnalytics;
 
     SharedPreferences sharedPrefs;
     TextView logWindow;
@@ -62,16 +70,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         messageView = (EditText) findViewById(R.id.messageText);
         messageView.setOnEditorActionListener(this);
 
-        fcmToken = sharedPrefs.getString("fcm_token", null);
-        if (fcmToken != null) {
-            logWindow.append("FCM token: " + fcmToken);
-        }
+        getFcmToken(sharedPrefs, logWindow);
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this);
 
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String text = intent.getStringExtra("text");
                 logWindow.append(text);
+                firebaseAnalytics.logEvent("receive_message", null);
             }
         };
     }
@@ -153,6 +160,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String error = response.getJSONArray("results").getJSONObject(0).getString("error");
                 logWindow.append("\n\nError sending notification: " + error);
             }
+            Bundle params = new Bundle();
+            params.putString("success", success == 1 ? "true" : "false");
+            firebaseAnalytics.logEvent("send_message", params);
         } catch (JSONException e) {
             Log.e(TAG, "Failure parsing JSON response");
             logWindow.append("\nFailure parsing JSON response");
@@ -169,7 +179,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             logWindow.append("\n\nHTTP " + statusCode);
     }
 
-
     @Override
     protected void onStart() {
         super.onStart();
@@ -184,5 +193,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Remove broadcast receiver
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
         super.onStop();
+    }
+
+    private void getFcmToken(final SharedPreferences sharedPrefs, final TextView logWindow) {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                            return;
+                        }
+
+                        // Get new FCM registration token
+                        String token = task.getResult();
+
+                        Log.d(TAG, "FCM token: "+token);
+                        sharedPrefs.edit().putString("fcm_token", token).apply();
+                        logWindow.append("FCM token: " + token);
+                    }
+                });
     }
 }
